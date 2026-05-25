@@ -1,0 +1,47 @@
+{{ define "content" }}
+<section class="upload-section">
+    <h2>Upload Excel File</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".xlsx,.xls" required>
+        <button type="submit">Upload</button>
+    </form>
+</section>
+
+<section class="stats-section">
+    <h2>Statistics</h2>
+    <div class="stats-cards">
+        <div class="card">
+            <span class="card-value">{{ .Stats.TotalRecords }}</span>
+            <span class="card-label">Total Records</span>
+        </div>
+        <div class="card">
+            <span class="card-value">{{ .Stats.UploadCount }}</span>
+            <span class="card-label">Uploads</span>
+        </div>
+    </div>
+</section>
+
+{{ if .Stats.Uploads }}
+<section class="uploads-section">
+    <h2>Recent Uploads</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Filename</th>
+                <th>Date</th>
+                <th>Records</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .Stats.Uploads }}
+            <tr>
+                <td>{{ .Filename }}</td>
+                <td>{{ .CreatedAt.Format "Jan 02, 2006 15:04" }}</td>
+                <td>{{ .RecordCount }}</td>
+            </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</section>
+{{ end }}
+{{ end }}

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: influx
+data:
+  INFLUX_URL: "http://influxdb:8086"
+  INFLUX_ORG: "influx"
+  INFLUX_BUCKET: "excel"
+  SERVER_PORT: "8080"
+  INFLUX_TOKEN: "my-super-secret-token"

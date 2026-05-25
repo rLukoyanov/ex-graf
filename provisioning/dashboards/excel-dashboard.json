@@ -1,0 +1,135 @@
+{
+  "title": "Excel Importer",
+  "uid": "excel-importer",
+  "tags": ["excel"],
+  "schemaVersion": 39,
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": [
+      {
+        "name": "column",
+        "type": "query",
+        "query": "import \"influxdata/influxdb/schema\"\nschema.tagKeys(bucket: \"excel\", predicate: (r) => r._measurement == \"excel_data\")",
+        "includeAll": true,
+        "multi": false,
+        "datasource": { "type": "influxdb", "uid": "influxdb" },
+        "refresh": 1,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 5,
+      "type": "barchart",
+      "title": "Распределение по ${column}",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group(columns: [\"${column}\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> yield(name: \"distribution\")",
+          "resultFormat": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Детализация по ${column}",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group(columns: [\"${column}\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> yield(name: \"breakdown\")",
+          "resultFormat": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Всего записей",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group()\n  |> sum()\n  |> yield(name: \"total\")",
+          "resultFormat": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed" },
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Всего загрузок",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"upload_meta\")\n  |> group()\n  |> count()\n  |> yield(name: \"uploads\")",
+          "resultFormat": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed" },
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "barchart",
+      "title": "Записей на загрузку",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 28 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group(columns: [\"upload_id\", \"filename\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> yield(name: \"per_upload\")",
+          "resultFormat": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "История загрузок",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 38 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"upload_meta\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> keep(columns: [\"_time\", \"upload_id\", \"filename\", \"record_count\"])\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 50)\n  |> yield(name: \"uploads\")",
+          "resultFormat": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    }
+  ]
+}
