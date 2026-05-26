@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,6 +16,16 @@ import (
 	"influx/internal/parser"
 	"influx/internal/store"
 )
+
+var datePattern = regexp.MustCompile(`(\d{2})_(\d{2})_(\d{4})`)
+
+func parseDateFromFilename(filename string) (time.Time, error) {
+	matches := datePattern.FindStringSubmatch(filename)
+	if len(matches) != 4 {
+		return time.Time{}, fmt.Errorf("no date pattern dd_MM_yyyy found in filename: %s", filename)
+	}
+	return time.Parse("02_01_2006", matches[1]+"_"+matches[2]+"_"+matches[3])
+}
 
 const maxUploadSize = 50 << 20
 
@@ -52,10 +63,15 @@ func (h *UploadHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	createdAt, err := parseDateFromFilename(header.Filename)
+	if err != nil {
+		createdAt = time.Now()
+	}
+
 	upload := model.Upload{
 		ID:          uuid.New().String(),
 		Filename:    header.Filename,
-		CreatedAt:   time.Now(),
+		CreatedAt:   createdAt,
 		RecordCount: int64(len(parseResult.Data)),
 	}
 

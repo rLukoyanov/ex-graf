@@ -4,7 +4,7 @@
   "tags": ["excel"],
   "schemaVersion": 39,
   "time": {
-    "from": "now-30d",
+    "from": "now-1y",
     "to": "now"
   },
   "timepicker": {},
@@ -13,8 +13,8 @@
       {
         "name": "column",
         "type": "query",
-        "query": "import \"influxdata/influxdb/schema\"\nschema.tagKeys(bucket: \"excel\", predicate: (r) => r._measurement == \"excel_data\")",
-        "includeAll": true,
+        "query": "import \"influxdata/influxdb/schema\"\nschema.tagKeys(bucket: \"excel\", start: -100y, predicate: (r) => r._measurement == \"excel_data\")",
+        "includeAll": false,
         "multi": false,
         "datasource": { "type": "influxdb", "uid": "influxdb" },
         "refresh": 1,
@@ -24,44 +24,24 @@
   },
   "panels": [
     {
-      "id": 5,
-      "type": "barchart",
-      "title": "Распределение по ${column}",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "id": 11,
+      "type": "stat",
+      "title": "Всего уникальных",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
       "datasource": { "type": "influxdb", "uid": "influxdb" },
       "targets": [
         {
-          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group(columns: [\"${column}\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> yield(name: \"distribution\")",
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"upload_diff\" and r._field == \"end_total\")\n  |> group()\n  |> last()\n  |> yield(name: \"latest_total\")",
           "resultFormat": "table"
         }
       ],
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      }
-    },
-    {
-      "id": 6,
-      "type": "table",
-      "title": "Детализация по ${column}",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 },
-      "datasource": { "type": "influxdb", "uid": "influxdb" },
-      "targets": [
-        {
-          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group(columns: [\"${column}\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> yield(name: \"breakdown\")",
-          "resultFormat": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      }
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed" }, "unit": "short" }, "overrides": [] }
     },
     {
       "id": 1,
       "type": "stat",
       "title": "Всего записей",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 0 },
       "datasource": { "type": "influxdb", "uid": "influxdb" },
       "targets": [
         {
@@ -69,19 +49,13 @@
           "resultFormat": "table"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "fixed" },
-          "unit": "short"
-        },
-        "overrides": []
-      }
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed" }, "unit": "short" }, "overrides": [] }
     },
     {
       "id": 2,
       "type": "stat",
       "title": "Всего загрузок",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 0 },
       "datasource": { "type": "influxdb", "uid": "influxdb" },
       "targets": [
         {
@@ -89,47 +63,91 @@
           "resultFormat": "table"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "fixed" },
-          "unit": "short"
-        },
-        "overrides": []
-      }
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed" }, "unit": "short" }, "overrides": [] }
     },
     {
-      "id": 3,
+      "id": 9,
+      "type": "stat",
+      "title": "Новых за период",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"upload_diff\" and r._field == \"added_count\")\n  |> group()\n  |> sum()\n  |> yield(name: \"net_added\")",
+          "resultFormat": "table"
+        }
+      ],
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed" }, "unit": "short" }, "overrides": [] }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Тренд: всего уникальных записей",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"upload_diff\" and r._field == \"end_total\")\n  |> group()\n  |> sort(columns: [\"_time\"], desc: false)\n  |> yield(name: \"total_trend\")",
+          "resultFormat": "table"
+        }
+      ],
+      "fieldConfig": { "defaults": {}, "overrides": [] }
+    },
+    {
+      "id": 13,
       "type": "barchart",
-      "title": "Записей на загрузку",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 28 },
+      "title": "Распределение по типу кластера",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 18 },
       "datasource": { "type": "influxdb", "uid": "influxdb" },
       "targets": [
         {
-          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group(columns: [\"upload_id\", \"filename\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> yield(name: \"per_upload\")",
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group(columns: [\"тип кластера\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> yield(name: \"cluster_distribution\")",
           "resultFormat": "table"
         }
       ],
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      }
+      "fieldConfig": { "defaults": {}, "overrides": [] }
     },
     {
-      "id": 4,
-      "type": "table",
-      "title": "История загрузок",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 38 },
+      "id": 14,
+      "type": "barchart",
+      "title": "Распределение по солюшенам",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 18 },
       "datasource": { "type": "influxdb", "uid": "influxdb" },
       "targets": [
         {
-          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"upload_meta\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> keep(columns: [\"_time\", \"upload_id\", \"filename\", \"record_count\"])\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 50)\n  |> yield(name: \"uploads\")",
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group(columns: [\"имя солюшена\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> yield(name: \"solution_distribution\")",
           "resultFormat": "table"
         }
       ],
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      }
+      "fieldConfig": { "defaults": {}, "overrides": [] }
+    },
+    {
+      "id": 15,
+      "type": "table",
+      "title": "Версии солюшенов",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 28 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group(columns: [\"имя солюшена\", \"версия солюшен\"])\n  |> count()\n  |> group()\n  |> rename(columns: {_value: \"count\"})\n  |> sort(columns: [\"count\"], desc: true)\n  |> yield(name: \"version_breakdown\")",
+          "resultFormat": "table"
+        }
+      ],
+      "fieldConfig": { "defaults": {}, "overrides": [] }
+    },
+    {
+      "id": 16,
+      "type": "barchart",
+      "title": "Распределение по типу стенда",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 28 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "query": "from(bucket: \"excel\")\n  |> range(start: -100y)\n  |> filter(fn: (r) => r._measurement == \"excel_data\" and r._field == \"_record_count\")\n  |> group(columns: [\"тип стенда\"])\n  |> count()\n  |> group()\n  |> sort(columns: [\"_value\"], desc: true)\n  |> yield(name: \"stand_distribution\")",
+          "resultFormat": "table"
+        }
+      ],
+      "fieldConfig": { "defaults": {}, "overrides": [] }
     }
   ]
 }

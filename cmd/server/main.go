@@ -31,12 +31,14 @@ func main() {
 
 	pagesHandler := handler.NewPagesHandler(s, tmpl)
 	uploadHandler := handler.NewUploadHandler(s, tmpl)
+	compareHandler := handler.NewCompareHandler(s, tmpl)
 
 	r := chi.NewRouter()
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
 
 	r.Get("/", pagesHandler.Index)
+	r.Get("/compare", compareHandler.Compare)
 	r.Post("/upload", uploadHandler.Upload)
 
 	fileServer := http.FileServer(http.Dir("web/static"))

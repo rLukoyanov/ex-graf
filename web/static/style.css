@@ -113,3 +113,53 @@ th {
 tr:hover td {
     background: #f8f9fa;
 }
+
+.compare-form {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.compare-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    color: #555;
+    font-weight: 600;
+}
+
+.compare-form input[type="date"] {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.card-green { border-left: 4px solid #27ae60; }
+.card-red   { border-left: 4px solid #e74c3c; }
+.card-blue  { border-left: 4px solid #3498db; }
+.card-gray  { border-left: 4px solid #95a5a6; }
+
+.record-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.record-item {
+    padding: 0.5rem 0.75rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.tag {
+    color: #555;
+}
